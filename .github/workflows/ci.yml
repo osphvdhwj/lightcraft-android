@@ -1,0 +1,69 @@
+# CI: a per-push build that mirrors release.yml exactly, minus the release
+# step. Same Java, same Rust toolchain (from rust-toolchain.toml), same NDK,
+# same gradle flags — so a green CI is proof the release build will be green
+# too. No release key: debug-signed, exactly like release.yml's dry run.
+name: CI
+on:
+  push:
+    branches: [baseline, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  apk:
+    name: APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - id: v
+        name: Resolve version
+        run: |
+          v="$(sed -n 's/^lightcraft\.version=//p' apps/lightcraft-android/android/gradle.properties)"
+          echo "version=$v" >>"$GITHUB_OUTPUT"
+          echo "### v$v (\`${GITHUB_SHA::9}\`)" >>"$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install Rust
+        run: rustup toolchain install
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: release-android
+
+      - name: Install cargo-ndk and the Android NDK
+        run: |
+          cargo install cargo-ndk --version 4.1.2 --locked
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;29.0.14206865" >/dev/null
+
+      - name: Build
+        working-directory: apps/lightcraft-android/android
+        env:
+          VERSION: ${{ steps.v.outputs.version }}
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/dist"
+          for abi in arm64-v8a armeabi-v7a; do
+            ./gradlew assembleRelease "-Plightcraft.abis=$abi" "-Plightcraft.version=$VERSION" --no-daemon
+            suffix=""; [ "$abi" = arm64-v8a ] || suffix="-$abi"
+            cp app/build/outputs/apk/release/app-release.apk "$GITHUB_WORKSPACE/dist/lightcraft-android-$VERSION$suffix.apk"
+          done
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-apk
+          path: dist/*
+          if-no-files-found: error
