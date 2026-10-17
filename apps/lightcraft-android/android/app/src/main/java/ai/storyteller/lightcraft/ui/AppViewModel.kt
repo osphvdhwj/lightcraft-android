@@ -313,6 +313,11 @@ class BitmapCache(bytes: Int) {
 }
 
 class AppViewModel(app: Application) : AndroidViewModel(app) {
+
+    // Edit-first landing: the photo last edited this session, so the next launch can reopen it.
+    var lastOpenedPhotoId by mutableStateOf<ULong?>(null)
+        private set
+    fun rememberOpenedPhoto(id: ULong) { lastOpenedPhotoId = id }
     private val lightcraft = app as LightcraftApplication
 
     var engine by mutableStateOf<Engine?>(null)
@@ -2931,11 +2936,14 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Remove, heal or clone: for the picked spot, else for the next ones. */
     fun setRemoveMode(mode: String) {
-        val v = m.coerceIn(listOf("remove", "heal", "clone"))
+        val v = when (mode) {
+            "remove", "heal", "clone" -> mode
+            else -> "remove"
+        }
         val ed = editor ?: return
         ed.removeMode = v
-}
-        edit(after = { refreshSpots() }) { it.execute("spot.update", JSONObject().put("index", i).put("mode", mode).toString()) }
+        val i = ed.selectedSpot ?: return
+        edit(after = { refreshSpots() }) { it.execute("spot.update", JSONObject().put("index", i).put("mode", v).toString()) }
     }
 
     /** Read Guided Upright's guides again (after a change, on opening Geometry). */

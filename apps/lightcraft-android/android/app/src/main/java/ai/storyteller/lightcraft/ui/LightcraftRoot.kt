@@ -29,6 +29,7 @@ fun LightcraftRoot(vm: AppViewModel, onPickPhotos: () -> Unit, onPickFiles: () -
         }
     }
     val editor = vm.editor
+    LaunchedEffect(editor?.photoId) { editor?.photoId?.let { vm.rememberOpenedPhoto(it) } }
     // the library's message (and its Undo) stays with the library
     LaunchedEffect(editor != null) { if (editor != null) snackbar.currentSnackbarData?.dismiss() }
     // the editor fading out still needs the photo it showed
