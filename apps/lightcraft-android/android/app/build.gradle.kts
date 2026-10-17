@@ -237,6 +237,7 @@ tasks.configureEach {
 }
 
 dependencies {
+    implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.compose.material3:material3:1.5.0-alpha21")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)

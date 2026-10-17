@@ -1,5 +1,11 @@
 package ai.storyteller.lightcraft.ui
 
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.Icons
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Box
@@ -8,10 +14,18 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ButtonGroup
+import androidx.compose.material3.ToggleFloatingActionButton
+import androidx.compose.material3.FloatingActionButtonMenuItem
+import androidx.compose.material3.FloatingActionButtonMenu
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 
 /** The library grid, or the editor when a photo is open; snackbars for both. */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun LightcraftRoot(vm: AppViewModel, onPickPhotos: () -> Unit, onPickFiles: () -> Unit, onCamera: () -> Unit) {
     val snackbar = remember { SnackbarHostState() }
