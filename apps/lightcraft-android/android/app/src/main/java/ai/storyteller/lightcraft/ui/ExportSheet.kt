@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package ai.storyteller.lightcraft.ui
 
 import ai.storyteller.lightcraft.core.DevelopControl
@@ -39,6 +41,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -703,7 +706,7 @@ private fun WatermarkEditor(vm: AppViewModel, ed: EditorState, c: ExportChoice, 
             contentAlignment = Alignment.Center,
         ) {
             preview?.let { Image(it, "Preview: tap where the watermark goes", contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize()) }
-            if (busy && preview == null) CircularProgressIndicator(Modifier.size(32.dp), color = Lc.highlight, trackColor = Lc.divider)
+            if (busy && preview == null) CircularWavyProgressIndicator(Modifier.size(32.dp), color = Lc.highlight)
         }
         // text or graphic, as tabs
         Row(Modifier.padding(top = 5.dp).fillMaxWidth(), horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center) {
@@ -837,7 +840,7 @@ private fun BorderEditor(vm: AppViewModel, ed: EditorState, c: ExportChoice, set
             contentAlignment = Alignment.Center,
         ) {
             preview?.let { Image(it, "Preview", contentScale = ContentScale.Fit, modifier = Modifier.fillMaxSize()) }
-                ?: CircularProgressIndicator(Modifier.size(32.dp), color = Lc.highlight, trackColor = Lc.divider)
+                ?: CircularWavyProgressIndicator(Modifier.size(32.dp), color = Lc.highlight)
         }
         Text("Border size", color = labelColor, fontFamily = Inter, fontSize = 15.sp, modifier = Modifier.padding(start = 16.dp, top = 14.dp, bottom = 6.dp))
         Row(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp)) {

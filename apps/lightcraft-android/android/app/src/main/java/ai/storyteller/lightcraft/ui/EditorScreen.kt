@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package ai.storyteller.lightcraft.ui
 
 import ai.storyteller.lightcraft.core.ImageSize
@@ -69,6 +71,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.CircularWavyProgressIndicator
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -705,7 +709,7 @@ private fun TopBarButtons(vm: AppViewModel, ed: EditorState, onCreatePreset: () 
             }
             if (ed.exporting) {
                 Box(Modifier.size(width = 87.7.dp, height = 40.dp), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(Modifier.size(18.dp), color = Lc.barIcon, strokeWidth = 2.dp)
+                    CircularWavyProgressIndicator(Modifier.size(18.dp), color = Lc.barIcon, strokeWidth = 2.dp)
                 }
             } else {
                 BarButton(MdIcon.Share, "Share", size = 40.dp, iconSize = 22.dp, tint = Lc.barIcon) { onExport(true) }
@@ -1493,7 +1497,7 @@ private fun PhotoView(vm: AppViewModel, ed: EditorState, modifier: Modifier, sid
                 delay(500)
                 slow = true
             }
-            if (slow) CircularProgressIndicator(Modifier.align(Alignment.Center).size(48.dp), color = Lc.highlight, trackColor = Lc.divider)
+            if (slow) LoadingIndicator(Modifier.align(Alignment.Center).size(48.dp), color = Lc.highlight)
         }
         // the reference's: 300 x 94 dp at the top left, under the top bar; not while cropping, masking or removing
         val histogramShown = vm.viewOverlay == "histogram" && ed.tool != MainTool.CROP && ed.tool != MainTool.MASKING && ed.tool != MainTool.REMOVE
