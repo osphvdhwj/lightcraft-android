@@ -137,12 +137,12 @@ abstract class LightcraftAssets : DefaultTask() {
 }
 
 android {
-    namespace = "ai.storyteller.lightcraft"
+    namespace = "com.yourname.lightcraft"
     compileSdk = 37
     ndkVersion = "29.0.14206865"
 
     defaultConfig {
-        applicationId = "io.github.artcraftandroid.lightcraft"
+        applicationId = "com.yourname.lightcraft"
         minSdk = minApi
         targetSdk = 36
         versionCode = appVersionCode
