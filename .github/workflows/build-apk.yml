@@ -3,32 +3,56 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-      - uses: android-actions/setup-android@v3
-      - name: Install Rust
+
+      - name: Show Android env
+        run: |
+          echo "SDK=$ANDROID_SDK_ROOT"
+          echo "NDK=$ANDROID_NDK_HOME"
+          echo "NDK_LATEST=$ANDROID_NDK_LATEST_HOME"
+          ls "$ANDROID_SDK_ROOT" 2>/dev/null | head -20 || true
+          ls "$ANDROID_NDK_HOME"  2>/dev/null | head -20 || true
+
+      - name: Install Rust + cargo-ndk
         run: |
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-          source $HOME/.cargo/env
+          source "$HOME/.cargo/env"
           rustup target add aarch64-linux-android armv7-linux-androideabi
-          cargo install cargo-ndk --version 4.1.2 --locked
+          cargo install cargo-ndk
+
       - name: Build Rust engine
         run: |
+          source "$HOME/.cargo/env"
           cd apps/lightcraft-android
-          cargo ndk -t arm64-v8a -o ./jniLibs build --release
+          cargo ndk -t arm64-v8a -t armeabi-v7a -o ./jniLibs build --release
+
+      - name: Stage native libs for AGP
+        run: |
+          mkdir -p apps/lightcraft-android/android/app/src/main/jniLibs
+          if [ -d apps/lightcraft-android/jniLibs ]; then
+            cp -r apps/lightcraft-android/jniLibs/. apps/lightcraft-android/android/app/src/main/jniLibs/
+            echo "copied:"; find apps/lightcraft-android/android/app/src/main/jniLibs -type f | head
+          fi
+
       - name: Build APK
         run: |
           cd apps/lightcraft-android/android
           chmod +x gradlew
-          ./gradlew assembleRelease
+          ./gradlew assembleRelease --stacktrace
+
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: lightcraft-apk
           path: apps/lightcraft-android/android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: warn
