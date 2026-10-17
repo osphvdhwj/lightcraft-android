@@ -137,12 +137,12 @@ abstract class LightcraftAssets : DefaultTask() {
 }
 
 android {
-    namespace = "com.yourname.lightcraft"
+    namespace = "com.osphvdhwj.lightcraft"
     compileSdk = 37
     ndkVersion = "29.0.14206865"
 
     defaultConfig {
-        applicationId = "com.yourname.lightcraft"
+        applicationId = "com.osphvdhwj.lightcraft"
         minSdk = minApi
         targetSdk = 36
         versionCode = appVersionCode
@@ -237,6 +237,7 @@ tasks.configureEach {
 }
 
 dependencies {
+    implementation("androidx.compose.material3:material3:1.5.0-alpha21")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
