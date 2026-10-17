@@ -232,8 +232,28 @@ fun RemoveOverlay(vm: AppViewModel, ed: EditorState, geometry: ViewGeometry, ima
                 moveTo(stroke[0].x, stroke[0].y)
                 stroke.drop(1).forEach { lineTo(it.x, it.y) }
             }
-            drawPath(path, Color.White.copy(alpha = 0.35f), style = Stroke(width = 2 * r, cap = StrokeCap.Round, join = StrokeJoin.Round))
-            if (stroke.size == 1) drawCircle(Color.White.copy(alpha = 0.35f), r, stroke[0])
+            // feather-aware preview: matches spread_fade in crates/pipeline/src/masks.rs
+            // core solid to coreR, fading to outerR (core = 1 - f*(0.68 + 0.32*f), outer = core + 2.5*f)
+            val f = (ed.brushFeather / 100.0).coerceIn(0.0, 1.0)
+            val core = (1.0 - f * (0.68 + 0.32 * f)).coerceAtLeast(0.0)
+            val coreR = r * core
+            val outerR = r * (core + 2.5 * f)
+            val midR = (coreR + outerR) / 2.0
+            val base = Color.White.copy(alpha = 0.35f)
+            val fade = base.copy(alpha = base.alpha * 0.35f)
+            val mid = base.copy(alpha = base.alpha * 0.65f)
+            if (outerR > coreR + 0.5) {
+                drawPath(path, fade, style = Stroke(width = 2f * outerR.toFloat(), cap = StrokeCap.Round, join = StrokeJoin.Round))
+                drawPath(path, mid, style = Stroke(width = 2f * midR.toFloat(), cap = StrokeCap.Round, join = StrokeJoin.Round))
+            }
+            drawPath(path, base, style = Stroke(width = 2f * coreR.toFloat().coerceAtLeast(1f), cap = StrokeCap.Round, join = StrokeJoin.Round))
+            if (stroke.size == 1) {
+                if (outerR > coreR + 0.5) {
+                    drawCircle(fade, outerR.toFloat(), stroke[0])
+                    drawCircle(mid, midR.toFloat(), stroke[0])
+                }
+                drawCircle(base, coreR.toFloat().coerceAtLeast(1f), stroke[0])
+            }
         }
     }
 }

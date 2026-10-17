@@ -1856,6 +1856,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Back: out of Profiles, a range picker or Masking (as Cancel), out of a sub-panel, off the white balance selector, then out of the editor. */
     fun back() {
+        editor?.maskErase = false
         val ed = editor ?: return
         when {
             ed.immersive -> ed.immersive = false
@@ -2201,6 +2202,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Edit mask [id] itself (its picture in the column; its parts are picked under it). */
     fun selectMask(id: UInt) {
+        editor?.maskErase = false
         val ed = editor ?: return
         val e = engine ?: return
         ed.selectedMask = id
@@ -2635,9 +2637,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         val params = JSONObject()
             .put("id", mask.toLong())
             .put("points", org.json.JSONArray(points.map { (x, y) -> org.json.JSONArray().put(x).put(y) }))
-            .put("size", ed.maskBrushSize.toDouble())
-            .put("feather", ed.maskBrushFeather.toDouble())
-            .put("flow", ed.maskBrushFlow.toDouble())
+            .put("size", ed.maskBrushSize.coerceIn(0.002f, 0.1f).toDouble())
+            .put("feather", ed.maskBrushFeather.coerceIn(0f, 100f).toDouble())
+            .put("flow", ed.maskBrushFlow.coerceIn(0f, 100f).toDouble())
             .put("erase", ed.maskErase)
             // painted as the reference's brush: the feather spreads past the radius, flow builds up
             .put("spread", true)
@@ -2929,12 +2931,10 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Remove, heal or clone: for the picked spot, else for the next ones. */
     fun setRemoveMode(mode: String) {
+        val v = m.coerceIn(listOf("remove", "heal", "clone"))
         val ed = editor ?: return
-        val i = ed.selectedSpot
-        if (i == null) {
-            ed.removeMode = mode
-            return
-        }
+        ed.removeMode = v
+}
         edit(after = { refreshSpots() }) { it.execute("spot.update", JSONObject().put("index", i).put("mode", mode).toString()) }
     }
 
@@ -2984,8 +2984,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun setBrush(size: Float? = null, feather: Float? = null, opacity: Float? = null) {
         val ed = editor ?: return
         size?.let { ed.brushSize = it.coerceIn(0.002f, 0.1f) }
-        feather?.let { ed.brushFeather = it }
-        opacity?.let { ed.brushOpacity = it }
+        feather?.let { ed.brushFeather = it.coerceIn(0f, 100f) }
+        opacity?.let { ed.brushOpacity = it.coerceIn(0f, 100f) }
     }
 
     /** A brush slider let go: the picked spot takes its settings (one step). */

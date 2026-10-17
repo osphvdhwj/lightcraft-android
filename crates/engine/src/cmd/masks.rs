@@ -248,10 +248,10 @@ pub fn specs() -> Vec<CommandSpec> {
                 let d = BrushStroke::default();
                 let stroke = BrushStroke {
                     points: pts,
-                    size: f64_or(p, "size", d.size),
-                    feather: f64_or(p, "feather", d.feather),
-                    flow: f64_or(p, "flow", d.flow),
-                    density: f64_or(p, "density", d.density),
+                    size: f64_or(p, "size", d.size).clamp(0.0001, 0.5),
+                    feather: f64_or(p, "feather", d.feather).clamp(0.0, 100.0),
+                    flow: f64_or(p, "flow", d.flow).clamp(0.0, 100.0),
+                    density: f64_or(p, "density", d.density).clamp(0.0, 100.0),
                     erase: bool_or(p, "erase", false),
                     auto_mask: bool_or(p, "autoMask", false),
                     spread: bool_or(p, "spread", false),

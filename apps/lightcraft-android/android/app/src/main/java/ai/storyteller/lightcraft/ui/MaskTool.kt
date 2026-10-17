@@ -675,7 +675,7 @@ fun MaskPartBar(vm: AppViewModel, ed: EditorState, modifier: Modifier) {
                 }
                 "brush" -> {
                     BarBox(if (ed.maskErase) "Paint" else "Erase", on = ed.maskErase, onClick = { ed.maskErase = !ed.maskErase }) {
-                        LcIcon(if (ed.maskErase) LcIcon.PencilOff else LcIcon.Pencil, null, tint = Lc.panelText, size = 24.dp)
+                        LcIcon(if (ed.maskErase) LcIcon.Pencil else LcIcon.PencilOff, null, tint = Lc.panelText, size = 24.dp)
                     }
                     BarGap()
                     BarValue("Size", ed.maskBrushSize * 1000.0, editing == "size") { editing = if (editing == "size") null else "size" }
@@ -713,9 +713,9 @@ fun MaskPartBar(vm: AppViewModel, ed: EditorState, modifier: Modifier) {
                     onChange = { vm.setShapeValue(open, it) },
                     onDone = vm::shapeDone,
                 )
-                "size" -> BarSlider(ed, "Size", ed.maskBrushSize * 1000.0, 2.0, 100.0, 256.dp, onChange = { ed.maskBrushSize = (it / 1000).toFloat() }, onDone = {})
-                "brushFeather" -> BarSlider(ed, "Feather", ed.maskBrushFeather.toDouble(), 0.0, 100.0, 200.2.dp, onChange = { ed.maskBrushFeather = it.toFloat() }, onDone = {})
-                "flow" -> BarSlider(ed, "Flow", ed.maskBrushFlow.toDouble(), 1.0, 100.0, 144.4.dp, onChange = { ed.maskBrushFlow = it.toFloat() }, onDone = {})
+                "size" -> BarSlider(ed, "Size", ed.maskBrushSize * 1000.0, 2.0, 100.0, 256.dp, onChange = { ed.maskBrushSize = (it / 1000).coerceIn(0.002, 0.1).toFloat() }, onDone = {})
+                "brushFeather" -> BarSlider(ed, "Feather", ed.maskBrushFeather.toDouble(), 0.0, 100.0, 200.2.dp, onChange = { ed.maskBrushFeather = it.coerceIn(0.0, 100.0).toFloat() }, onDone = {})
+                "flow" -> BarSlider(ed, "Flow", ed.maskBrushFlow.toDouble(), 1.0, 100.0, 144.4.dp, onChange = { ed.maskBrushFlow = it.coerceIn(0.0, 100.0).toFloat() }, onDone = {})
             }
         }
     }
@@ -1270,8 +1270,28 @@ fun MaskOverlay(vm: AppViewModel, ed: EditorState, mask: MaskInfo, geometry: Vie
                 stroke.drop(1).forEach { lineTo(it.x, it.y) }
             }
             val color = if (ed.maskErase) Color(0x66E04A4A) else Color(0x5566AAFF)
-            drawPath(path, color, style = Stroke(width = 2 * r, cap = StrokeCap.Round, join = StrokeJoin.Round))
-            if (stroke.size == 1) drawCircle(color, r, stroke[0])
+            // feather-aware preview: matches spread_fade in crates/pipeline/src/masks.rs
+            // core solid to coreR, fading out to outerR (core = 1 - f*(0.68 + 0.32*f), outer = core + 2.5*f)
+            val f = (ed.maskBrushFeather / 100.0).coerceIn(0.0, 1.0)
+            val core = (1.0 - f * (0.68 + 0.32 * f)).coerceAtLeast(0.0)
+            val coreR = r * core
+            val outerR = r * (core + 2.5 * f)
+            val midR = (coreR + outerR) / 2.0
+            val fade = color.copy(alpha = color.alpha * 0.35f)
+            val mid = color.copy(alpha = color.alpha * 0.65f)
+            // outer soft ring, then mid, then solid core
+            if (outerR > coreR + 0.5) {
+                drawPath(path, fade, style = Stroke(width = 2f * outerR.toFloat(), cap = StrokeCap.Round, join = StrokeJoin.Round))
+                drawPath(path, mid, style = Stroke(width = 2f * midR.toFloat(), cap = StrokeCap.Round, join = StrokeJoin.Round))
+            }
+            drawPath(path, color, style = Stroke(width = 2f * coreR.toFloat().coerceAtLeast(1f), cap = StrokeCap.Round, join = StrokeJoin.Round))
+            if (stroke.size == 1) {
+                if (outerR > coreR + 0.5) {
+                    drawCircle(fade, outerR.toFloat(), stroke[0])
+                    drawCircle(mid, midR.toFloat(), stroke[0])
+                }
+                drawCircle(color, coreR.toFloat().coerceAtLeast(1f), stroke[0])
+            }
         }
     }
 }
