@@ -309,11 +309,11 @@ private fun UprightEditor(vm: AppViewModel, ed: EditorState, createPreset: () ->
                 Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
                 if (ed.rangePicker == null) EditorTopBar(vm, ed, createPreset, onExport, Modifier.windowInsetsPadding(horizontalInsets))
                 // a mask part's value slider: its name and value 7.8 dp under the bar (the reference's)
-                (ed.barPill ?: ed.tool?.label ?: ed.info.file_name.takeIf {
+                (ed.barPill ?: ed.tool?.label ?: ed.info.fileName.takeIf {
                     ed.section == null && it.isNotEmpty() && it.length <= 32
-                }?.let {
+                }?.let { name ->
                     buildString {
-                        append(it)
+                        append(name)
                         append(" · ")
                         if (ed.info.raw) { append("RAW · ") }
                         append("${ed.info.width}×${ed.info.height}")
@@ -323,14 +323,10 @@ private fun UprightEditor(vm: AppViewModel, ed: EditorState, createPreset: () ->
                             append(cap.substring(0, 10))
                         }
                         if (ed.info.edited) append(" •")
-                        if (ed.info.rating > 0) {
+                        val r = ed.info.rating.toInt()
+                        if (r > 0) {
                             append("  ")
-                            repeat(ed.info.rating) { append("★") }
-                        }
-                        when (ed.info.flag) {
-                            PhotoFlag.PICKED -> append("  ✓")
-                            PhotoFlag.REJECTED -> append("  ✗")
-                            else -> {}
+                            repeat(r) { append("★") }
                         }
                     }
                 })?.let {
@@ -791,7 +787,8 @@ private fun TopBarButtons(vm: AppViewModel, ed: EditorState, onCreatePreset: () 
                     }
                     LcMenuItem(LcIcon.PasteSettings, "Paste Settings", enabled = vm.hasCopiedSettings) {
                         more = false
-                        haptics.performHapticFeedback(HapticFeedbackType.LongPress); vm.pasteSettings()
+                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        vm.pasteSettings()
                     }
                     LcMenuItem(LcIcon.ApplyPrevious, "Apply from previous") {
                         more = false
@@ -799,7 +796,8 @@ private fun TopBarButtons(vm: AppViewModel, ed: EditorState, onCreatePreset: () 
                     }
                     LcMenuItem(LcIcon.Sliders, "Reset all edits") {
                         more = false
-                        haptics.performHapticFeedback(HapticFeedbackType.LongPress); vm.resetAllEdits()
+                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        vm.resetAllEdits()
                     }
                     LcMenuDivider()
                     if (inLibrary && vm.photos.any { it.id == ed.photoId }) {

@@ -1822,16 +1822,15 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun openEditor(p: PhotoInfo, device: DeviceOrigin? = null) {
+        prefs.edit().putLong("lastPhotoId", p.id.toLong()).apply()
+        val e = engine ?: return
+        val ed = EditorState(p.id, p, device)
         ed.barPill = null
         ed.copyPicker = false
         ed.maskPicker = null
         ed.spotMenu = false
         ed.maskOptions = false
         ed.rangePicker = null
-
-        prefs.edit().putLong("lastPhotoId", p.id.toLong()).apply()
-        val e = engine ?: return
-        val ed = EditorState(p.id, p, device)
         // stepping from photo to photo: same view, same tool and section
         editor?.let {
             if (it.photoId != p.id) viewModelScope.launch { discardUntouched(it) }
