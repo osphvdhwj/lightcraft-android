@@ -50,7 +50,7 @@ class MainActivity : ComponentActivity() {
                 LightcraftRoot(
                     vm,
                     onPickPhotos = { pickPhotos.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
-                    onPickFiles = { pickFiles.launch(arrayOf("image/*", "image/heic", "image/heif", "image/avif", "image/x-adobe-dng", "application/octet-stream")) },
+                    onPickFiles = { pickFiles.launch(arrayOf("image/*", "image/heic", "image/heif", "image/avif", "image/x-adobe-dng", "image/webp", "image/tiff", "application/octet-stream")) },
                     onCamera = ::openCamera,
                 )
             }

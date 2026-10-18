@@ -7,6 +7,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -17,6 +19,14 @@ fun LightcraftRoot(vm: AppViewModel, onPickPhotos: () -> Unit, onPickFiles: () -
     val snackbar = remember { SnackbarHostState() }
     // kept here so the grid's scroll position survives a visit to the editor
     val grid = rememberLazyListState()
+    // Edit-first cold launch: reopen the last photo once, after photos load.
+    var coldReopenTried by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(vm.photos) {
+        if (!coldReopenTried && vm.photos.isNotEmpty()) {
+            coldReopenTried = true
+            vm.tryColdLaunchReopen()
+        }
+    }
     LaunchedEffect(vm) {
         for (m in vm.messages) {
             val result = snackbar.showSnackbar(

@@ -1806,7 +1806,23 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     // ------------------------------------------------------------------ editor
 
+    // Edit-first cold launch: prefs remembers the last opened photo; if it's still in
+    // the library at startup, reopen it. Photos load async, so the UI calls this once
+    // after the first non-empty photos list.
+    fun tryColdLaunchReopen(): Boolean {
+        if (editor != null) return false
+        val id = prefs.getLong("lastPhotoId", 0L).toULong()
+        if (id == 0uL) return false
+        val p = photos.firstOrNull { it.id == id } ?: run {
+            prefs.edit().remove("lastPhotoId").apply()
+            return false
+        }
+        openEditor(p)
+        return true
+    }
+
     fun openEditor(p: PhotoInfo, device: DeviceOrigin? = null) {
+        prefs.edit().putLong("lastPhotoId", p.id.toLong()).apply()
         val e = engine ?: return
         val ed = EditorState(p.id, p, device)
         // stepping from photo to photo: same view, same tool and section
