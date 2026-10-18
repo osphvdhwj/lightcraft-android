@@ -1181,3 +1181,17 @@ fn undo_and_redo_show_the_photo_they_change() {
     s.execute("edit.undo", &json!({})).unwrap();
     assert_eq!(s.selection, before, "a step over several photos keeps the selection");
 }
+
+#[test]
+fn mask_brush_stroke_clamps_out_of_range() {
+    // brushStroke must accept out-of-range values (clamping), not reject or panic.
+    let mut s = demo();
+    let id = s.active().unwrap();
+    s.execute("mask.brushStroke", &json!({
+        "id": id,
+        "points": [[0.5, 0.5]],
+        "feather": 999.0,
+        "flow": -50.0,
+        "size": 100.0
+    })).unwrap();
+}

@@ -1822,6 +1822,13 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun openEditor(p: PhotoInfo, device: DeviceOrigin? = null) {
+        ed.barPill = null
+        ed.copyPicker = false
+        ed.maskPicker = null
+        ed.spotMenu = false
+        ed.maskOptions = false
+        ed.rangePicker = null
+
         prefs.edit().putLong("lastPhotoId", p.id.toLong()).apply()
         val e = engine ?: return
         val ed = EditorState(p.id, p, device)
@@ -3185,7 +3192,22 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         }) { it.execute("develop.copy", JSONObject().put("groups", JSONArray(groups.toList())).toString()) }
     }
 
-    fun pasteSettings() = edit(after = ::refreshToolState) { it.execute("develop.paste", "{}") }
+    fun pasteSettings() {
+        if (!hasCopiedSettings) { say("Copy settings first (More ▸ Copy Settings)"); return }
+
+    /** Reset all edit controls to their defaults (crop and orientation kept). */
+    fun resetAllEdits() {
+        val ed = editor ?: return
+        edit(after = { refreshToolState(); say("All edits reset") }) { s ->
+            ed.controls.forEach { c ->
+                runCatching {
+                    s.execute("develop.resetControl", JSONObject().put("control", c.id).toString())
+                }
+            }
+        }
+    }
+        edit(after = ::refreshToolState) { it.execute("develop.paste", "{}") }
+    }
 
     /** The edited photo's versions, newest first (Versions). */
     var versions by mutableStateOf<List<VersionInfo>>(emptyList())

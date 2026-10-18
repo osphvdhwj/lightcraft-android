@@ -81,6 +81,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.ripple
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -307,7 +309,33 @@ private fun UprightEditor(vm: AppViewModel, ed: EditorState, createPreset: () ->
                 Spacer(Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
                 if (ed.rangePicker == null) EditorTopBar(vm, ed, createPreset, onExport, Modifier.windowInsetsPadding(horizontalInsets))
                 // a mask part's value slider: its name and value 7.8 dp under the bar (the reference's)
-                ed.barPill?.let { Pill(it, Modifier.align(Alignment.CenterHorizontally).padding(top = 7.8.dp)) }
+                (ed.barPill ?: ed.tool?.label ?: ed.info.file_name.takeIf {
+                    ed.section == null && it.isNotEmpty() && it.length <= 32
+                }?.let {
+                    buildString {
+                        append(it)
+                        append(" · ")
+                        if (ed.info.raw) { append("RAW · ") }
+                        append("${ed.info.width}×${ed.info.height}")
+                        val cap = ed.info.captured
+                        if (cap != null && cap.length >= 10) {
+                            append(" · ")
+                            append(cap.substring(0, 10))
+                        }
+                        if (ed.info.edited) append(" •")
+                        if (ed.info.rating > 0) {
+                            append("  ")
+                            repeat(ed.info.rating) { append("★") }
+                        }
+                        when (ed.info.flag) {
+                            PhotoFlag.PICKED -> append("  ✓")
+                            PhotoFlag.REJECTED -> append("  ✗")
+                            else -> {}
+                        }
+                    }
+                })?.let {
+                    Pill(it, Modifier.align(Alignment.CenterHorizontally).padding(top = 7.8.dp))
+                }
             }
             if (before) BeforePill(Modifier.align(Alignment.TopCenter))
             Column(
@@ -645,6 +673,7 @@ fun Pill(text: String, modifier: Modifier = Modifier) {
 private fun TopBarButtons(vm: AppViewModel, ed: EditorState, onCreatePreset: () -> Unit, onExport: (Boolean) -> Unit, modifier: Modifier = Modifier) {
     var more by remember { mutableStateOf(false) }
     var previous by remember { mutableStateOf(false) }
+    val haptics = LocalHapticFeedback.current
     if (previous) {
         ChoiceMenu(
             "Apply from previous",
@@ -756,16 +785,21 @@ private fun TopBarButtons(vm: AppViewModel, ed: EditorState, onCreatePreset: () 
                         onCreatePreset()
                     }
                     LcMenuItem(LcIcon.CopySettings, "Copy Settings") {
-                        more = false
+                        
+                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)more = false
                         ed.copyPicker = true
                     }
                     LcMenuItem(LcIcon.PasteSettings, "Paste Settings", enabled = vm.hasCopiedSettings) {
                         more = false
-                        vm.pasteSettings()
+                        haptics.performHapticFeedback(HapticFeedbackType.LongPress); vm.pasteSettings()
                     }
                     LcMenuItem(LcIcon.ApplyPrevious, "Apply from previous") {
                         more = false
                         previous = true
+                    }
+                    LcMenuItem(LcIcon.Sliders, "Reset all edits") {
+                        more = false
+                        haptics.performHapticFeedback(HapticFeedbackType.LongPress); vm.resetAllEdits()
                     }
                     LcMenuDivider()
                     if (inLibrary && vm.photos.any { it.id == ed.photoId }) {

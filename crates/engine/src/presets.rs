@@ -384,9 +384,8 @@ pub fn builtin() -> Vec<Preset> {
             "Sepia Tone",
             json!({"treatment": "bw", "grading": {"shadows": {"hue": 32.0, "sat": 22.0, "lum": 0.0}, "highlights": {"hue": 42.0, "sat": 18.0, "lum": 0.0}}, "curve": {"shadows": 10.0}}),
         ),
-    ]
-
-        // ---- Extended pack: portraits, landscapes, film looks, moods
+    
+        // ---- Extended pack
         p("Film", "kodachrome", "Kodachrome", json!({"treatment": "color", "wb": {"mode": "custom", "temp": 5800.0, "tint": 4.0}, "light": {"contrast": 22.0, "shadows": 15.0, "highlights": -20.0}, "color": {"saturation": 12.0, "vibrance": 20.0}, "grading": {"shadows": {"hue": 30.0, "sat": 8.0, "lum": 0.0}, "highlights": {"hue": 45.0, "sat": 10.0, "lum": 0.0}}})),
         p("Film", "portra-400", "Portra 400", json!({"treatment": "color", "wb": {"mode": "custom", "temp": 6200.0, "tint": 6.0}, "light": {"contrast": -8.0, "shadows": 18.0, "highlights": -15.0}, "color": {"saturation": -5.0, "vibrance": 15.0}, "mixer": {"orange": {"hue": 0.0, "sat": 6.0, "lum": 4.0}}})),
         p("Film", "velvia-50", "Velvia 50", json!({"treatment": "color", "light": {"contrast": 25.0, "shadows": 10.0, "highlights": -10.0}, "color": {"saturation": 30.0, "vibrance": 25.0}})),
@@ -413,7 +412,7 @@ pub fn builtin() -> Vec<Preset> {
         p("Food", "vivid-table", "Vivid Table", json!({"treatment": "color", "light": {"contrast": 20.0, "shadows": 8.0, "highlights": -8.0}, "color": {"saturation": 25.0, "vibrance": 30.0}, "effects": {"clarity": 15.0}})),
         p("Minimal", "clean-white", "Clean White", json!({"treatment": "color", "light": {"exposure": 0.2, "contrast": -8.0, "shadows": 25.0, "highlights": -20.0, "whites": 15.0}, "color": {"saturation": -10.0, "vibrance": 5.0}})),
         p("Minimal", "soft-gray", "Soft Gray", json!({"treatment": "color", "light": {"contrast": -15.0, "shadows": 20.0, "highlights": -20.0}, "color": {"saturation": -40.0}, "effects": {"clarity": -10.0}})),
-
+]
 }
 
 #[derive(Clone, Debug, Serialize)]
